@@ -6,13 +6,43 @@
     <title>Shop Theft Classification</title>
     <link rel="stylesheet" href="{% static 'style.css' %}">
     <link rel="icon" type="image/x-icon" href="{% static 'icon.ico' %}">
+    <style>
+        /* Extra styles for wait note and close button */
+        .wait-note {
+            display: none;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--dark);
+            margin-top: 20px;
+        }
+
+        .result-box {
+            position: relative;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: var(--dark);
+        }
+
+        .close-btn:hover {
+            color: red;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1 class="header">Shop Theft Classification</h1>
         
         <!-- Upload Form -->
-        <form id="uploadForm" method="post" enctype="multipart/form-data"  action="{% url 'predict' %}">
+        <form id="uploadForm" method="post" enctype="multipart/form-data" action="{% url 'predict' %}">
             {% csrf_token %}
             <div class="form-group">
                 <label for="video">Upload a video</label>
@@ -30,9 +60,13 @@
 
             <button type="submit" class="btn-custom">Predict</button>
         </form>
+
+        <!-- Wait Note -->
+        <div id="waitNote" class="wait-note">⏳ Please Wait... This might take some time</div>
         
         <!-- Results Section -->
         <div id="results" class="result-box">
+            <button class="close-btn" onclick="document.getElementById('results').style.display='none'">✖</button>
             <div class="result-text">
                 <strong>Prediction:</strong> <span id="prediction-text"></span><br>
                 <strong>Confidence:</strong> <span id="confidence-text"></span>
@@ -42,29 +76,45 @@
                 <source id="videoSource" src="" type="video/mp4">
                 Your browser does not support the video tag.
             </video>
-            <p class="video-note">Note that: this video is processed by YOLOv8n to detect people in frames not to detect the shop lifter<p>
+            <p class="video-note">Note that: this video is processed by YOLOv8n to detect people in frames not to detect the shop lifter</p>
         </div>
     </div>
+
     <script>
     document.getElementById("uploadForm").onsubmit = async function(e) {
         e.preventDefault();
         let formData = new FormData(this);
 
+        // Show wait note & hide results
+        document.getElementById("waitNote").style.display = "block";
+        document.getElementById("results").style.display = "none";
+
         let response = await fetch("{% url 'predict' %}", {
             method: "POST",
             body: formData,
             headers: { "X-CSRFToken": "{{ csrf_token }}" }
-    });
+        });
 
-    let result = await response.json();
-    document.getElementById("results").style.display = "block";
-    document.getElementById("prediction-text").textContent = result.prediction;
-    document.getElementById("confidence-text").textContent = result.confidence + "%";
-    
-    let video = document.getElementById("outputVideo");
-    let source = document.getElementById("videoSource");
-    source.src = result.video_url;
-    video.load(); }
-</script>
+        let result = await response.json();
+
+        // Hide wait note & show results
+        document.getElementById("waitNote").style.display = "none";
+        document.getElementById("results").style.display = "block";
+
+        document.getElementById("prediction-text").textContent = result.prediction;
+        document.getElementById("confidence-text").textContent = result.confidence + "%";
+
+        let video = document.getElementById("outputVideo");
+        let source = document.getElementById("videoSource");
+        source.src = result.video_url;
+        video.load();
+    }
+
+    // Close button
+    document.querySelector(".close-btn").addEventListener("click", function() {
+        document.getElementById("results").style.display = "none";
+    });
+    </script>
+
 </body>
 </html>

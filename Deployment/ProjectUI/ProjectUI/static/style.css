@@ -136,3 +136,32 @@ input[type="file"] {
     color: var(--black);
     font-weight: bold;
 }
+
+.wait-note {
+    display: none;
+    text-align: center;
+    font-weight: bold;
+    font-size: 18px;
+    color: var(--dark);
+    margin-top: 20px;
+}
+
+.result-box {
+    position: relative;
+}
+
+.close-btn {
+    position: absolute;
+    top: 8px;
+    right: 10px;
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+    color: var(--black);
+    transition: 0.2s;
+}
+
+.close-btn:hover {
+    color: var(--primary);
+}
