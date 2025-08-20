@@ -1,0 +1,70 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop Theft Classification</title>
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link rel="icon" type="image/x-icon" href="{% static 'icon.ico' %}">
+</head>
+<body>
+    <div class="container">
+        <h1 class="header">Shop Theft Classification</h1>
+        
+        <!-- Upload Form -->
+        <form id="uploadForm" method="post" enctype="multipart/form-data"  action="{% url 'predict' %}">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="video">Upload a video</label>
+                <input type="file" name="video" id="video" required>
+            </div>
+
+            <!-- Model Selection -->
+            <div class="form-group">
+                <label for="model">Choose Model</label>
+                <select name="model" id="model" required>
+                    <option value="efficientnet_lstm.pth">EfficientNetB0 + LSTM</option>
+                    <option value="custom_3dcnn.pth">Custom 3D CNN</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn-custom">Predict</button>
+        </form>
+        
+        <!-- Results Section -->
+        <div id="results" class="result-box">
+            <div class="result-text">
+                <strong>Prediction:</strong> <span id="prediction-text"></span><br>
+                <strong>Confidence:</strong> <span id="confidence-text"></span>
+            </div>
+            
+            <video id="outputVideo" controls width="650" style="margin-top: 10px;">
+                <source id="videoSource" src="" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <p class="video-note">Note that: this video is processed by YOLOv8n to detect people in frames not to detect the shop lifter<p>
+        </div>
+    </div>
+    <script>
+    document.getElementById("uploadForm").onsubmit = async function(e) {
+        e.preventDefault();
+        let formData = new FormData(this);
+
+        let response = await fetch("{% url 'predict' %}", {
+            method: "POST",
+            body: formData,
+            headers: { "X-CSRFToken": "{{ csrf_token }}" }
+    });
+
+    let result = await response.json();
+    document.getElementById("results").style.display = "block";
+    document.getElementById("prediction-text").textContent = result.prediction;
+    document.getElementById("confidence-text").textContent = result.confidence + "%";
+    
+    let video = document.getElementById("outputVideo");
+    let source = document.getElementById("videoSource");
+    source.src = result.video_url;
+    video.load(); }
+</script>
+</body>
+</html>
