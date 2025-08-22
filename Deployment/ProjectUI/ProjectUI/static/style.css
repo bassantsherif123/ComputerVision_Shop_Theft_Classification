@@ -8,7 +8,7 @@
 
 body { 
     font-family: Arial, sans-serif;
-    background-color: var(--stone);
+    background-color: var(--primary);
     margin: 0;
     padding: 0;
 }

@@ -11,7 +11,7 @@ import imageio_ffmpeg
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load YOLOv8 (person detection)
-yolo_model = YOLO("yolov8n.pt")
+yolo_model = YOLO("yolov8n.pt") 
 
 CLASSES = ["Non Shoplifter", "Shoplifter"]
 
@@ -34,6 +34,7 @@ def load_model(model_name):
     return model
 
 def run_inference(video_path, model_name="best_model.pth"):
+    print(f'Device used: {device}')
     # --- 1. Load classifier dynamically ---
     model = load_model(model_name)
 
@@ -76,6 +77,7 @@ def run_inference(video_path, model_name="best_model.pth"):
         else:
             raise ValueError(f"Unsupported model: {model_name}")
     
+    print(f'Prediction: {prediction}')
 
     # --- 2. YOLOv8 Detection ---
     # Open input video
@@ -99,7 +101,7 @@ def run_inference(video_path, model_name="best_model.pth"):
             break
     
         # Run YOLO person detection (no labels)
-        results = yolo_model.predict(frame, classes=[0], verbose=False)  # class 0 = person
+        results = yolo_model.predict(frame, classes=[0], device=device, verbose=False)  # class 0 = person
     
         # Draw green boxes without labels
         for box in results[0].boxes.xyxy:  # xyxy format
@@ -112,11 +114,5 @@ def run_inference(video_path, model_name="best_model.pth"):
     out.release()
     
     final_path = os.path.join(settings.MEDIA_ROOT, "output_detected.mp4")
-    ffmpeg_bin = imageio_ffmpeg.get_ffmpeg_exe()  # ensures venv ffmpeg is used
-    command = [
-        ffmpeg_bin, "-y", "-i", out_path,
-        "-vcodec", "libx264", "-acodec", "aac",
-        "-strict", "experimental", final_path
-    ]
-    subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print('Video is ready!')
     return prediction, confidence, final_path
